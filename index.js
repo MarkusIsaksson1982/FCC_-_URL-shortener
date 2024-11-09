@@ -23,12 +23,25 @@ app.get('/', function(req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
+// Utility function to validate URL format
+const isValidUrl = (url) => {
+  const regex = /^(https?:\/\/)(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+/;
+  return regex.test(url);
+};
+
 // Endpoint to shorten URL
 app.post('/api/shorturl', (req, res) => {
   const originalUrl = req.body.url;
+
+  // Validate the URL format first
+  if (!isValidUrl(originalUrl)) {
+    return res.json({ error: 'invalid url' });
+  }
+
+  // Parse the URL after validating format
   const urlObject = urlParser.parse(originalUrl);
 
-  // Validate the URL
+  // Perform DNS lookup to ensure hostname is valid
   dns.lookup(urlObject.hostname, (err) => {
     if (err) {
       return res.json({ error: 'invalid url' });
